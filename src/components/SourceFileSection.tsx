@@ -17,10 +17,10 @@ export function SourceFileSection({ file, onRemove }: SourceFileSectionProps) {
       <div className="flex items-center justify-between p-3 bg-slate-700/50">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex items-center gap-2 text-left flex-1 min-w-0"
+          className="flex items-center gap-2 text-left flex-1 min-w-0 min-h-[44px] md:min-h-0"
         >
           <svg
-            className={`w-4 h-4 text-slate-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+            className={`w-5 h-5 md:w-4 md:h-4 text-slate-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -34,10 +34,10 @@ export function SourceFileSection({ file, onRemove }: SourceFileSectionProps) {
         </button>
         <button
           onClick={onRemove}
-          className="ml-2 p-1 text-slate-400 hover:text-red-400 transition-colors"
+          className="ml-2 p-2.5 md:p-1 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors"
           title="Remove file"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -62,7 +62,7 @@ export function SourceFileSection({ file, onRemove }: SourceFileSectionProps) {
               ref={provided.innerRef}
               {...provided.droppableProps}
               className={`
-                p-3 grid grid-cols-3 gap-2 min-h-[80px]
+                p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[80px]
                 ${snapshot.isDraggingOver ? 'bg-slate-600/30' : ''}
               `}
             >

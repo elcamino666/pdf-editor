@@ -15,6 +15,7 @@ function App() {
   const { files, addFiles, removeFile, isAnyLoading } = useMultiplePDFs();
   const [resultPages, setResultPages] = useState<PageIdentifier[]>([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [activePanel, setActivePanel] = useState<'source' | 'result'>('source');
 
   // Handle removing a source file - also remove its pages from result
   const handleRemoveFile = useCallback(
@@ -86,6 +87,10 @@ function App() {
 
   const handleRemoveResultPage = (index: number) => {
     setResultPages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddPagesFromDialog = (pages: PageIdentifier[]) => {
+    setResultPages((prev) => [...prev, ...pages]);
   };
 
   const handleExport = async () => {
@@ -186,18 +191,46 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
       {/* Header */}
-      <header className="flex-none px-6 py-4 border-b border-slate-700">
-        <h1 className="text-2xl font-bold text-white">PDF Page Rearranger</h1>
-        <p className="text-slate-400 text-sm">
+      <header className="flex-none px-4 md:px-6 py-3 md:py-4 border-b border-slate-700">
+        <h1 className="text-xl md:text-2xl font-bold text-white">PDF Page Rearranger</h1>
+        <p className="text-slate-400 text-xs md:text-sm">
           Upload PDFs, drag pages to build your document, and export
         </p>
       </header>
+
+      {/* Mobile Tab Navigation */}
+      <div className="md:hidden flex border-b border-slate-700">
+        <button
+          onClick={() => setActivePanel('source')}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activePanel === 'source'
+              ? 'text-white border-b-2 border-blue-500 bg-slate-800/50'
+              : 'text-slate-400'
+          }`}
+        >
+          Source Files
+        </button>
+        <button
+          onClick={() => setActivePanel('result')}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activePanel === 'result'
+              ? 'text-white border-b-2 border-blue-500 bg-slate-800/50'
+              : 'text-slate-400'
+          }`}
+        >
+          Result ({resultPages.length})
+        </button>
+      </div>
 
       {/* Main two-panel layout */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex-1 flex min-h-0">
           {/* Source Panel - Left */}
-          <div className="w-80 flex-none border-r border-slate-700 bg-slate-800/30">
+          <div className={`
+            ${activePanel === 'source' ? 'flex' : 'hidden'} md:flex
+            flex-col w-full md:w-80 flex-none
+            md:border-r border-slate-700 bg-slate-800/30
+          `}>
             <SourcePanel
               files={files}
               onAddFiles={addFiles}
@@ -206,7 +239,10 @@ function App() {
           </div>
 
           {/* Result Panel - Right */}
-          <div className="flex-1 min-w-0">
+          <div className={`
+            ${activePanel === 'result' ? 'flex' : 'hidden'} md:flex
+            flex-col flex-1 min-w-0
+          `}>
             <ResultPanel
               resultPages={resultPages}
               files={files}
@@ -214,6 +250,7 @@ function App() {
               onRemovePage={handleRemoveResultPage}
               onExport={handleExport}
               isExporting={isExporting}
+              onAddPages={handleAddPagesFromDialog}
             />
           </div>
         </div>

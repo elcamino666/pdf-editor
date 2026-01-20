@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import type { FileId, PDFFileData, PageIdentifier } from '../types/pdf';
 import { createResultDraggableId, DROPPABLE_RESULT } from '../utils/pageId';
+import { AddPagesDialog } from './AddPagesDialog';
 
 interface ResultPanelProps {
   resultPages: PageIdentifier[];
@@ -9,6 +11,7 @@ interface ResultPanelProps {
   onRemovePage: (index: number) => void;
   onExport: () => void;
   isExporting: boolean;
+  onAddPages: (pages: PageIdentifier[]) => void;
 }
 
 export function ResultPanel({
@@ -18,26 +21,35 @@ export function ResultPanel({
   onRemovePage,
   onExport,
   isExporting,
+  onAddPages,
 }: ResultPanelProps) {
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const canExport = resultPages.length > 0 && !isExporting;
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700">
-        <h2 className="text-lg font-semibold text-white">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-slate-700">
+        <h2 className="text-base md:text-lg font-semibold text-white">
           Result
           {resultPages.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-slate-400">
+            <span className="ml-2 text-xs md:text-sm font-normal text-slate-400">
               ({resultPages.length} {resultPages.length === 1 ? 'page' : 'pages'})
             </span>
           )}
         </h2>
         <div className="flex items-center gap-2">
+          {/* Add Pages button - mobile only */}
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="md:hidden px-4 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            + Add Pages
+          </button>
           {resultPages.length > 0 && (
             <button
               onClick={onClear}
-              className="px-3 py-1.5 text-slate-400 hover:text-white text-sm transition-colors"
+              className="px-4 py-2.5 md:px-3 md:py-1.5 min-h-[44px] md:min-h-0 text-slate-400 hover:text-white text-sm transition-colors"
             >
               Clear
             </button>
@@ -46,7 +58,7 @@ export function ResultPanel({
             onClick={onExport}
             disabled={!canExport}
             className={`
-              flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium text-sm
+              flex items-center gap-2 px-5 py-2.5 md:px-4 md:py-1.5 min-h-[44px] md:min-h-0 rounded-lg font-medium text-sm
               transition-all duration-200
               ${
                 canExport
@@ -99,7 +111,7 @@ export function ResultPanel({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`
-              flex-1 overflow-y-auto p-4
+              flex-1 overflow-y-auto p-3 md:p-4
               ${snapshot.isDraggingOver ? 'bg-blue-500/10' : ''}
             `}
           >
@@ -112,7 +124,7 @@ export function ResultPanel({
                 `}
               >
                 <svg
-                  className={`w-16 h-16 mb-4 ${snapshot.isDraggingOver ? 'text-blue-500' : 'text-slate-500'}`}
+                  className={`w-12 h-12 md:w-16 md:h-16 mb-4 ${snapshot.isDraggingOver ? 'text-blue-500' : 'text-slate-500'}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -170,12 +182,18 @@ export function ResultPanel({
                               e.stopPropagation();
                               onRemovePage(index);
                             }}
-                            className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center
-                              rounded-full bg-red-500/80 text-white opacity-0 group-hover:opacity-100
-                              hover:bg-red-600 transition-all duration-150 text-sm font-medium"
+                            className="absolute top-1 right-1 md:top-2 md:right-2 z-10
+                              w-10 h-10 md:w-6 md:h-6
+                              flex items-center justify-center
+                              rounded-full bg-red-500/90 md:bg-red-500/80 text-white
+                              opacity-100 md:opacity-0 md:group-hover:opacity-100
+                              hover:bg-red-600 active:bg-red-700
+                              transition-all duration-150"
                             title="Remove from result"
                           >
-                            ✕
+                            <svg className="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                           </button>
 
                           <img
@@ -211,6 +229,17 @@ export function ResultPanel({
           </div>
         )}
       </Droppable>
+
+      {/* Add Pages Dialog - mobile only */}
+      <AddPagesDialog
+        isOpen={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onAddPages={(pages) => {
+          onAddPages(pages);
+          setShowAddDialog(false);
+        }}
+        files={files}
+      />
     </div>
   );
 }

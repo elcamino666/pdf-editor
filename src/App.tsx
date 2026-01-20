@@ -109,11 +109,58 @@ function App() {
       // Create new PDF with pages in result order
       const newPdf = await PDFDocument.create();
 
+      // Determine target dimensions from the first page
+      let targetWidth: number | null = null;
+      let targetHeight: number | null = null;
+
       for (const page of resultPages) {
         const sourcePdf = loadedPdfs.get(page.fileId);
-        if (sourcePdf) {
+        if (!sourcePdf) continue;
+
+        const sourcePage = sourcePdf.getPage(page.pageNumber - 1);
+        const { width: sourceWidth, height: sourceHeight } = sourcePage.getSize();
+
+        // Use first page dimensions as target
+        if (targetWidth === null || targetHeight === null) {
+          targetWidth = sourceWidth;
+          targetHeight = sourceHeight;
+        }
+
+        // Check if page needs scaling
+        const needsScaling =
+          Math.abs(sourceWidth - targetWidth) > 1 ||
+          Math.abs(sourceHeight - targetHeight) > 1;
+
+        if (!needsScaling) {
+          // Page matches target dimensions, copy directly
           const [copiedPage] = await newPdf.copyPages(sourcePdf, [page.pageNumber - 1]);
           newPdf.addPage(copiedPage);
+        } else {
+          // Page has different dimensions - embed and scale to fit
+          const [embeddedPage] = await newPdf.embedPages([sourcePage]);
+
+          // Calculate scale to fit within target dimensions (maintain aspect ratio)
+          const scaleX = targetWidth / sourceWidth;
+          const scaleY = targetHeight / sourceHeight;
+          const scale = Math.min(scaleX, scaleY);
+
+          const scaledWidth = sourceWidth * scale;
+          const scaledHeight = sourceHeight * scale;
+
+          // Center the scaled page
+          const offsetX = (targetWidth - scaledWidth) / 2;
+          const offsetY = (targetHeight - scaledHeight) / 2;
+
+          // Create new page with target dimensions
+          const newPage = newPdf.addPage([targetWidth, targetHeight]);
+
+          // Draw the embedded page scaled and centered
+          newPage.drawPage(embeddedPage, {
+            x: offsetX,
+            y: offsetY,
+            width: scaledWidth,
+            height: scaledHeight,
+          });
         }
       }
 
